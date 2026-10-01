@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt & Text Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: rgba(23, 30, 48, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
+                        radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.12), transparent 40%);
+    }
+    header {
+      padding: 20px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .badge { background: linear-gradient(135deg, #6366f1, #a855f7); padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; }
+    .status { color: #34d399; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .status::before { content: ""; width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
+    main { max-width: 1000px; width: 100%; margin: 40px auto; padding: 0 20px; flex: 1; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; backdrop-filter: blur(16px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .stats { color: var(--muted); font-size: 0.85rem; display: flex; gap: 14px; }
+    .stats strong { color: var(--text); }
+    button {
+      font-family: inherit; font-weight: 600; font-size: 0.875rem; padding: 9px 16px; border-radius: 10px; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 14px var(--accent-glow); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+    .btn-sec { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); }
+    .btn-sec:hover { background: rgba(255,255,255,0.1); }
+    textarea {
+      width: 100%; height: 280px; background: rgba(11, 15, 25, 0.7); border: 1px solid var(--border); border-radius: 12px;
+      color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 1.6; padding: 16px; resize: vertical; outline: none;
+    }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .templates { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .chip { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 6px 12px; border-radius: 99px; font-size: 0.8rem; color: var(--muted); cursor: pointer; transition: 0.2s; }
+    .chip:hover { background: rgba(99, 102, 241, 0.15); border-color: var(--accent); color: #c7d2fe; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 10px; font-weight: 600; opacity: 0; transform: translateY(20px); transition: 0.3s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;"><div class="badge">TXT</div><strong>Prompt Cloud</strong></div>
+    <div class="status">Онлайн</div>
+  </header>
+  <main>
+    <div class="card">
+      <div class="toolbar">
+        <div class="stats">
+          <div>Символов: <strong id="chars">0</strong></div>
+          <div>Слов: <strong id="words">0</strong></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sec" onclick="document.getElementById('text').value='';updateStats();">Очистить</button>
+          <button class="btn-primary" onclick="copyText()">Скопировать</button>
+        </div>
+      </div>
+      <textarea id="text" placeholder="Введите ваш текст или промт...">Сюда вставьте ваш промт или текст</textarea>
+      <div class="templates">
+        <span style="font-size:0.8rem;color:var(--muted);align-self:center;">Шаблоны:</span>
+        <div class="chip" onclick="setTmpl('Действуй как опытный разработчик. Напиши чистый и безопасный код для: ')">💻 Кодинг</div>
+        <div class="chip" onclick="setTmpl('Сделай краткое саммари и выдели ключевые тезисы текста: ')">📑 Саммари</div>
+        <div class="chip" onclick="setTmpl('Исправь грамматику и улучши стиль текста: ')">✍️ Редактор</div>
+      </div>
+    </div>
+  </main>
+  <div class="toast" id="toast">Скопировано в буфер!</div>
+  <script>
+    const t = document.getElementById('text');
+    function updateStats() {
+      document.getElementById('chars').innerText = t.value.length;
+      document.getElementById('words').innerText = t.value.trim() ? t.value.trim().split(/\s+/).length : 0;
+    }
+    function copyText() {
+      navigator.clipboard.writeText(t.value);
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    function setTmpl(val) { t.value = val; updateStats(); t.focus(); }
+    t.addEventListener('input', updateStats);
+    updateStats();
+  </script>
+</body>
+</html>
