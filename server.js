@@ -4,10 +4,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Раздача статических файлов
 app.use(express.static(__dirname));
 
-// Главный маршрут
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
